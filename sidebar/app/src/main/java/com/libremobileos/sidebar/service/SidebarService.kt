@@ -213,6 +213,11 @@ class SidebarService : Service(), SharedPreferences.OnSharedPreferenceChangeList
         }
     }
 
+    override fun setGesturePillTransparent(transparent: Boolean) {
+        logger.d("setGesturePillTransparent: $transparent")
+        sideLineView.alpha = if (transparent) 0.2f else 1.0f
+    }
+
     private fun constrainY(y: Int): Int {
         // Avoid moving sideline into statusbar or navbar region
         val sbHeight = SystemBarUtils.getStatusBarHeight(this)

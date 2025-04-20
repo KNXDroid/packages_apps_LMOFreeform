@@ -20,8 +20,15 @@ class GestureListener(private val callback: Callback) : MGestureManager.MGesture
         callback.beginMoveSideline()
     }
 
+    // Handler and Runnable for inactivity timer
+    private val inactivityHandler = Handler(Looper.getMainLooper())
+    private val inactivityRunnable = Runnable {
+        callback.setGesturePillTransparent(true)
+    }
+
     companion object {
         private const val TAG = "GestureListener"
+        private const val INACTIVITY_TIMEOUT = 3000L // 3 seconds
     }
 
     override fun singleFingerSlipAction(
@@ -48,6 +55,13 @@ class GestureListener(private val callback: Callback) : MGestureManager.MGesture
 
                 isLongPress = false
                 longPressHandler.postDelayed(longPressRunnable, 500)
+
+                // Reset inactivity timer
+                inactivityHandler.removeCallbacks(inactivityRunnable)
+                inactivityHandler.postDelayed(inactivityRunnable, INACTIVITY_TIMEOUT)
+
+                // Make the gesture pill visible on touch
+                callback.setGesturePillTransparent(false)
             }
             MotionEvent.ACTION_MOVE -> {
                 if (isLongPress) {
@@ -60,6 +74,10 @@ class GestureListener(private val callback: Callback) : MGestureManager.MGesture
                 longPressHandler.removeCallbacks(longPressRunnable)
                 isLongPress = false
                 callback.endMoveSideline()
+
+                // Reset inactivity timer
+                inactivityHandler.removeCallbacks(inactivityRunnable)
+                inactivityHandler.postDelayed(inactivityRunnable, INACTIVITY_TIMEOUT)
             }
         }
     }
@@ -69,5 +87,6 @@ class GestureListener(private val callback: Callback) : MGestureManager.MGesture
         fun beginMoveSideline()
         fun moveSideline(xChanged: Int, yChanged: Int, touchX: Int, touchY: Int)
         fun endMoveSideline()
+        fun setGesturePillTransparent(transparent: Boolean)
     }
 }
